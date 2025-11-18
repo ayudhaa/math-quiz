@@ -82,19 +82,19 @@ function generateQuestion(levelKey){
 const showAlert = (message, type = 'info') => {
   switch(type) {
     case 'success':
-      Notify.success(message, { timeout: 2000 });
+      Notify.success(message, { timeout: 2000, position: 'center-top' });
       break;
     case 'failure':
-      Notify.failure(message, { timeout: 2000 });
+      Notify.failure(message, { timeout: 2000, position: 'center-top' });
       break;
     case 'warning':
-      Notify.warning(message, { timeout: 2000 });
+      Notify.warning(message, { timeout: 2000, position: 'center-top' });
       break;
     case 'info':
-      Notify.info(message, { timeout: 2000 });
+      Notify.info(message, { timeout: 2000, position: 'center-top' });
       break;
     default:
-      Notify.info(message, { timeout: 2000 });
+      Notify.info(message, { timeout: 2000, position: 'center-top' });
   }
 };
 
