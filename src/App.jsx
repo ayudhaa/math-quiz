@@ -880,14 +880,6 @@ export default function App(){
                       </div>
                     </div>
 
-                    {showExplanation && currentExplanation && (
-                      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div className="text-xs sm:text-sm text-yellow-800">
-                          <strong>Penjelasan:</strong> {currentExplanation}
-                        </div>
-                      </div>
-                    )}
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                       {choiceButtons}
                     </div>
