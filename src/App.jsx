@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { Notify } from 'notiflix';
 
 const LEVELS = {
-  gampang: {label: 'Gampang', ops: ['+','-'], a:[1,20], b:[1,20], time:30, totalQuestions: 8},
+  gampang: {label: 'Gampang', ops: ['+','-','kuadrat'], a:[1,20], b:[1,20], time:30, totalQuestions: 8},
   lumayan: {label: 'Lumayan', ops: ['*','/','linear'], a:[1,12], b:[1,12], time:35, totalQuestions: 8},
   susah: {label: 'Susah', ops: ['+','-','*','/','word','hard_division'], a:[1,100], b:[1,50], time:50, totalQuestions: 10},
 }
@@ -15,7 +15,6 @@ Notify.init({
 function randInt(min,max){ 
   return Math.floor(Math.random()*(max-min+1))+min 
 }
-
 
 function generateHardDivision() {
   const types = [
@@ -398,6 +397,58 @@ async function generateQuestion(levelKey){
       answer = hardDivision.answer;
       type = 'hard_division';
       break
+    case 'kuadrat':
+      const kuadratTypes = [
+        () => {
+          const num1 = randInt(1, 5);
+          const num2 = randInt(1, 5);
+          const square = num1 * num1;
+          answer = square + num2;
+          text = `${num1}² + ${num2}`;
+          return { text, answer, explanation: `${num1}² = ${num1} × ${num1} = ${square}, kemudian ${square} + ${num2} = ${answer}` };
+        },
+        
+        () => {
+          const num1 = randInt(2, 6);
+          const num2 = randInt(1, 3);
+          const square = num1 * num1;
+          answer = square - num2;
+          text = `${num1}² - ${num2}`;
+          return { text, answer, explanation: `${num1}² = ${num1} × ${num1} = ${square}, kemudian ${square} - ${num2} = ${answer}` };
+        },
+        
+        () => {
+          const num1 = randInt(2, 4);
+          const square = num1 * num1;
+          answer = num1;
+          text = `${square} ÷ ${num1}`;
+          return { text, answer, explanation: `${num1}² = ${num1} × ${num1} = ${square}, kemudian ${square} ÷ ${num1} = ${num1}` };
+        },
+        
+        () => {
+          const num1 = randInt(1, 4);
+          const num2 = randInt(1, 4);
+          const square1 = num1 * num1;
+          const square2 = num2 * num2;
+          answer = square1 + square2;
+          text = `${num1}² + ${num2}²`;
+          return { text, answer, explanation: `${num1}² = ${square1}, ${num2}² = ${square2}, ${square1} + ${square2} = ${answer}` };
+        },
+        
+        () => {
+          const num1 = randInt(3, 6);
+          const num2 = randInt(1, 4);
+          const square = num1 * num1;
+          answer = square - num2;
+          text = `${num1}² - ${num2}`;
+          return { text, answer, explanation: `${num1}² = ${num1} × ${num1} = ${square}, kemudian ${square} - ${num2} = ${answer}` };
+        }
+      ];
+      const kuadratProblem = kuadratTypes[Math.floor(Math.random() * kuadratTypes.length)]();
+      text = kuadratProblem.text;
+      answer = kuadratProblem.answer;
+      type = 'kuadrat';
+      break
     default:
       a = randInt(...cfg.a)
       b = randInt(...cfg.b)
@@ -413,9 +464,9 @@ async function generateQuestion(levelKey){
     let attempts = 0
     
     do {
-      if ((type === 'word' || type === 'hard_division') && answer > 1000) {
+      if ((type === 'word' || type === 'hard_division' || type === 'kuadrat') && answer > 1000) {
         cand = answer + randInt(-Math.floor(answer * 0.2), Math.floor(answer * 0.2))
-      } else if (type === 'word' || type === 'hard_division') {
+      } else if (type === 'word' || type === 'hard_division' || type === 'kuadrat') {
         cand = answer + randInt(-Math.max(2, Math.floor(answer * 0.3)), Math.max(2, Math.floor(answer * 0.3)))
       } else {
         const delta = Math.max(1, Math.round(Math.abs(answer)*0.2))
@@ -599,14 +650,14 @@ export default function App(){
       showAlert(`Jawaban salah! Yang benar: ${formatChoice(question.answer)}`, 'failure');
       
       
-      if (question.type === 'word' || question.type === 'hard_division') {
+      if (question.type === 'word' || question.type === 'hard_division' || question.type === 'kuadrat') {
         const wordProblem = MathProblemGenerator.generateWordProblem();
         setCurrentExplanation(`Jawabannya adalah ${formatChoice(question.answer)}. ${wordProblem.explanation || ''}`)
         setShowExplanation(true)
       }
     }
     
-    const delay = (question.type === 'word' || question.type === 'hard_division') ? 3000 : 1500
+    const delay = (question.type === 'word' || question.type === 'hard_division' || question.type === 'kuadrat') ? 3000 : 1500
     if (qnum < LEVELS[level].totalQuestions) {
       setTimeout(() => {
         nextQuestion()
@@ -835,7 +886,7 @@ export default function App(){
 
               <div className="text-xs sm:text-sm text-slate-600 mb-4 sm:mb-6">
                 Level: <strong>{LEVELS[level].label}</strong> • {LEVELS[level].totalQuestions} pertanyaan • {LEVELS[level].time} detik per pertanyaan
-                {level === 'susah' && <span className="text-gray-600"></span>}
+                {level === 'gampang' && <span className="text-gray-600"></span>}
               </div>
               
               <button 
@@ -879,6 +930,14 @@ export default function App(){
                         {TimerDisplay}
                       </div>
                     </div>
+
+                    {showExplanation && currentExplanation && (
+                      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="text-xs sm:text-sm text-yellow-800">
+                          <strong>Penjelasan:</strong> {currentExplanation}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                       {choiceButtons}
