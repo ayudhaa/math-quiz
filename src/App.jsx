@@ -2,9 +2,9 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { Notify } from 'notiflix';
 
 const LEVELS = {
-  easy: {label: 'Easy', ops: ['+','-'], a:[1,20], b:[1,20], time:30, totalQuestions: 10},
-  medium: {label: 'Medium', ops: ['*','/'], a:[1,12], b:[1,12], time:30, totalQuestions: 10},
-  hard: {label: 'Hard', ops: ['+','-','*','/'], a:[1,100], b:[1,50], time:40, totalQuestions: 10},
+  gampang: {label: 'Gampang', ops: ['+','-'], a:[1,20], b:[1,20], time:30, totalQuestions: 10},
+  lumayan: {label: 'Lumayan', ops: ['*','/'], a:[1,12], b:[1,12], time:30, totalQuestions: 10},
+  susah: {label: 'Susah', ops: ['+','-','*','/'], a:[1,100], b:[1,50], time:40, totalQuestions: 10},
 }
 
 Notify.init({
@@ -99,8 +99,8 @@ const showAlert = (message, type = 'info') => {
 };
 
 export default function App(){
-  const [level, setLevel] = useState('easy')
-  const [question, setQuestion] = useState(() => generateQuestion('easy'))
+  const [level, setLevel] = useState('gampang')
+  const [question, setQuestion] = useState(() => generateQuestion('gampang'))
   const [selected, setSelected] = useState(null)
   const [score, setScore] = useState(0)
   const [qnum, setQnum] = useState(1)
