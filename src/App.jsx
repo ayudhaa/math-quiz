@@ -4,7 +4,7 @@ import { Notify } from 'notiflix';
 const LEVELS = {
   gampang: {label: 'Gampang', ops: ['+','-'], a:[1,20], b:[1,20], time:30, totalQuestions: 8},
   lumayan: {label: 'Lumayan', ops: ['*','/','linear'], a:[1,12], b:[1,12], time:35, totalQuestions: 8},
-  susah: {label: 'Susah', ops: ['+','-','*','/','word'], a:[1,100], b:[1,50], time:50, totalQuestions: 8},
+  susah: {label: 'Susah', ops: ['+','-','*','/','word','hard_division'], a:[1,100], b:[1,50], time:50, totalQuestions: 10},
 }
 
 Notify.init({
@@ -16,6 +16,93 @@ function randInt(min,max){
   return Math.floor(Math.random()*(max-min+1))+min 
 }
 
+
+function generateHardDivision() {
+  const types = [
+    
+    () => {
+      const divisor = randInt(3, 15);
+      const quotient = randInt(5, 20);
+      const remainder = randInt(1, divisor - 1);
+      const dividend = divisor * quotient + remainder;
+      return {
+        problem: `${dividend} ÷ ${divisor} = ?`,
+        answer: quotient,
+        explanation: `${dividend} ÷ ${divisor} = ${quotient} sisa ${remainder}. Jadi jawabannya ${quotient}`
+      };
+    },
+    
+    
+    () => {
+      const divisor = randInt(6, 12);
+      const quotient = randInt(20, 50);
+      const dividend = divisor * quotient;
+      return {
+        problem: `${dividend} ÷ ${divisor} = ?`,
+        answer: quotient,
+        explanation: `${dividend} ÷ ${divisor} = ${quotient}`
+      };
+    },
+    
+    
+    () => {
+      const divisor = randInt(4, 8);
+      const quotient = randInt(8, 15);
+      const dividend = divisor * quotient * 10; 
+      return {
+        problem: `${dividend} ÷ ${divisor} = ?`,
+        answer: quotient * 10,
+        explanation: `${dividend} ÷ ${divisor} = ${quotient * 10}`
+      };
+    },
+    
+    
+    () => {
+      const num1 = randInt(2, 5);
+      const num2 = randInt(2, 5);
+      const num3 = randInt(2, 5);
+      const result = num1 * num2 * num3;
+      return {
+        problem: `${result} ÷ ${num1} ÷ ${num2} = ?`,
+        answer: num3,
+        explanation: `${result} ÷ ${num1} = ${num2 * num3}, kemudian ${num2 * num3} ÷ ${num2} = ${num3}`
+      };
+    },
+    
+    
+    () => {
+      const prime1 = [2, 3, 5, 7][randInt(0, 3)];
+      const prime2 = [2, 3, 5, 7][randInt(0, 3)];
+      const extra = randInt(2, 4);
+      const dividend = prime1 * prime1 * prime2 * extra;
+      const divisor = prime1 * prime2;
+      const quotient = prime1 * extra;
+      return {
+        problem: `${dividend} ÷ ${divisor} = ?`,
+        answer: quotient,
+        explanation: `${dividend} = ${prime1}×${prime1}×${prime2}×${extra}, ${divisor} = ${prime1}×${prime2}. Hasilnya ${prime1}×${extra} = ${quotient}`
+      };
+    },
+    
+    
+    () => {
+      const base = randInt(3, 8);
+      const multiplier1 = randInt(2, 6);
+      const multiplier2 = randInt(2, 6);
+      const dividend = base * multiplier1 * multiplier2;
+      const divisor = base * multiplier1;
+      const quotient = multiplier2;
+      return {
+        problem: `${dividend} ÷ ${divisor} = ?`,
+        answer: quotient,
+        explanation: `${dividend} = ${base}×${multiplier1}×${multiplier2}, ${divisor} = ${base}×${multiplier1}. Hasilnya ${multiplier2}`
+      };
+    }
+  ];
+  
+  const randomType = types[Math.floor(Math.random() * types.length)];
+  return randomType();
+}
 
 class MathProblemGenerator {
   static generateWordProblem() {
@@ -238,6 +325,18 @@ class MathProblemGenerator {
           answer: profit,
           explanation: `Keuntungan = Harga jual - Harga beli = ${sellPrice.toLocaleString('id-ID')} - ${buyPrice.toLocaleString('id-ID')} = Rp ${profit.toLocaleString('id-ID')}`
         };
+      },
+      
+      
+      () => {
+        const division = generateHardDivision();
+        return division;
+      },
+      
+      
+      () => {
+        const division = generateHardDivision();
+        return division;
       }
     ];
 
@@ -272,6 +371,7 @@ async function generateQuestion(levelKey){
       text = `${a} × ${b}`
       break
     case '/':
+      
       b = randInt(...cfg.b)
       answer = randInt(1, Math.min(...cfg.a))
       a = b * answer
@@ -291,6 +391,13 @@ async function generateQuestion(levelKey){
       answer = wordProblem.answer;
       type = 'word';
       break
+    case 'hard_division':
+      
+      const hardDivision = generateHardDivision();
+      text = hardDivision.problem;
+      answer = hardDivision.answer;
+      type = 'hard_division';
+      break
     default:
       a = randInt(...cfg.a)
       b = randInt(...cfg.b)
@@ -306,9 +413,9 @@ async function generateQuestion(levelKey){
     let attempts = 0
     
     do {
-      if (type === 'word' && answer > 1000) {
+      if ((type === 'word' || type === 'hard_division') && answer > 1000) {
         cand = answer + randInt(-Math.floor(answer * 0.2), Math.floor(answer * 0.2))
-      } else if (type === 'word') {
+      } else if (type === 'word' || type === 'hard_division') {
         cand = answer + randInt(-Math.max(2, Math.floor(answer * 0.3)), Math.max(2, Math.floor(answer * 0.3)))
       } else {
         const delta = Math.max(1, Math.round(Math.abs(answer)*0.2))
@@ -492,14 +599,14 @@ export default function App(){
       showAlert(`Jawaban salah! Yang benar: ${formatChoice(question.answer)}`, 'failure');
       
       
-      if (question.type === 'word') {
+      if (question.type === 'word' || question.type === 'hard_division') {
         const wordProblem = MathProblemGenerator.generateWordProblem();
         setCurrentExplanation(`Jawabannya adalah ${formatChoice(question.answer)}. ${wordProblem.explanation || ''}`)
         setShowExplanation(true)
       }
     }
     
-    const delay = question.type === 'word' ? 3000 : 1500
+    const delay = (question.type === 'word' || question.type === 'hard_division') ? 3000 : 1500
     if (qnum < LEVELS[level].totalQuestions) {
       setTimeout(() => {
         nextQuestion()
@@ -570,7 +677,7 @@ export default function App(){
         className={
           `text-left p-3 rounded-lg border transition-colors ${
             selected === c 
-              ? 'border-indigo-500 bg-indigo-50 text-indigo-700' 
+              ? 'border-gray-500 bg-indigo-50 text-gray-700' 
               : 'border-slate-200 bg-white hover:bg-slate-50'
           } ${(!gameStarted || !running || loading) ? 'opacity-50 cursor-not-allowed' : ''}`
         }
@@ -613,21 +720,21 @@ export default function App(){
             <div className="text-center py-6 sm:py-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Selesai☺️</h1>
               
-              <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 sm:p-6 mb-6">
-                <div className="text-xl sm:text-2xl font-bold text-indigo-700 mb-2">{playerName}</div>
+              <div className="bg-indigo-50 border border-gray-200 rounded-xl p-4 sm:p-6 mb-6">
+                <div className="text-xl sm:text-2xl font-bold text-gray-700 mb-2">{playerName}</div>
                 <div className="text-base sm:text-lg text-slate-600">
-                  Nilai kamu: <span className="font-bold text-indigo-600">{score}</span> / {LEVELS[level].totalQuestions}
+                  Nilai kamu: <span className="font-bold text-gray-600">{score}</span> / {LEVELS[level].totalQuestions}
                 </div>
                 <div className="text-xs sm:text-sm text-slate-500 mt-2">
                   Level: {LEVELS[level].label}
                 </div>
                 <div className="mt-3 text-sm font-medium">
                   {score === LEVELS[level].totalQuestions ? (
-                    <span className="text-green-600">🎉Kamu keren bangeeett!</span>
+                    <span className="text-green-600">🎉Kamu keren bangeeett</span>
                   ) : score >= LEVELS[level].totalQuestions * 0.8 ? (
                     <span className="text-green-500">👍 Waw kamu bisaaa</span>
                   ) : score >= LEVELS[level].totalQuestions * 0.6 ? (
-                    <span className="text-blue-500">😊 Wih kereeeenn!</span>
+                    <span className="text-gray-500">😊 Wih kereeeenn</span>
                   ) : (
                     <span className="text-orange-500">💪 Kamu bisa coba lagi yaaa</span>
                   )}
@@ -637,7 +744,7 @@ export default function App(){
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button 
                   onClick={restartGame}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base"
+                  className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm sm:text-base"
                 >
                   Main lagi
                 </button>
@@ -680,7 +787,7 @@ export default function App(){
             <div className="mb-4">
               <div className="w-full bg-slate-200 rounded-full h-2">
                 <div 
-                  className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-gray-700 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
@@ -712,7 +819,8 @@ export default function App(){
           </div>
 
           {!gameStarted ? (
-            <div className="text-center py-4 sm:py-6"><div className="mb-4 sm:mb-6">
+            <div className="text-center py-4 sm:py-6">
+              <div className="mb-4 sm:mb-6">
                 <input
                   ref={nameInputRef}
                   type="text"
@@ -727,7 +835,7 @@ export default function App(){
 
               <div className="text-xs sm:text-sm text-slate-600 mb-4 sm:mb-6">
                 Level: <strong>{LEVELS[level].label}</strong> • {LEVELS[level].totalQuestions} pertanyaan • {LEVELS[level].time} detik per pertanyaan
-                {level === 'susah' && <span className="text-indigo-600"> • 18 variasi soal cerita</span>}
+                {level === 'susah' && <span className="text-gray-600"></span>}
               </div>
               
               <button 
@@ -747,8 +855,8 @@ export default function App(){
               <div className="p-4 sm:p-6 rounded-xl border border-slate-100 mb-4 bg-white">
                 {loading ? (
                   <div className="text-center py-6 sm:py-8">
-                    <div className="animate-spin rounded-full h-10 sm:h-12 w-10 sm:w-12 border-b-2 border-indigo-600 mx-auto mb-3 sm:mb-4"></div>
-                    <div className="text-slate-600 text-sm sm:text-base">Generating question...</div>
+                    <div className="animate-spin rounded-full h-10 sm:h-12 w-10 sm:w-12 border-b-2 border-gray-600 mx-auto mb-3 sm:mb-4"></div>
+                    <div className="text-slate-600 text-sm sm:text-base">Memuat soal...</div>
                   </div>
                 ) : (
                   <>
