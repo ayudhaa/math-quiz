@@ -810,7 +810,7 @@ export default function App(){
             {gameStarted && (
               <button 
                 onClick={resetAll} 
-                className="sm:ml-auto text-xs sm:text-sm px-3 py-2 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors disabled:opacity-50"
+                className="sm:ml-auto text-xs sm:text-sm px-3 py-2 bg-red-200 rounded-md hover:bg-slate-200 transition-colors disabled:opacity-50"
                 disabled={loading}
               >
                 Mulai ulang
