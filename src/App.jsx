@@ -673,8 +673,6 @@ export default function App(){
                 <div className="text-xs sm:text-sm text-slate-500">Nilai</div>
                 <div className="text-lg sm:text-xl font-medium text-slate-800">{score}</div>
               </div>
-              
-              {gameStarted && TimerDisplay}
             </div>
           </div>
 
