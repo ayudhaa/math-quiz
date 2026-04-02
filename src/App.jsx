@@ -849,7 +849,8 @@ export default function App(){
             <div className="flex items-center gap-2">
               <label className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">Level:</label>
               <select 
-                className="flex-1 px-3 py-2 border rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="flex-1 px-3 py-2 border rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 appearance-none bg-white"
+                style={{ minHeight: 40 }}
                 value={level} 
                 onChange={handleLevelChange}
                 disabled={gameStarted || loading}
