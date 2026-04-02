@@ -30,99 +30,48 @@ function randInt(min,max){
   return Math.floor(Math.random()*(max-min+1))+min 
 }
 
-function generateHardDivision() {
-  const types = [
-    () => {
-      const divisor = randInt(3, 15);
-      const quotient = randInt(5, 20);
-      const remainder = randInt(1, divisor - 1);
-      const dividend = divisor * quotient + remainder;
-      return {
-        problem: `${dividend} ÷ ${divisor} = ?`,
-        answer: quotient,
-        explanation: `${dividend} ÷ ${divisor} = ${quotient} sisa ${remainder}.`
-      };
-    },
-    () => {
-      const divisor = randInt(6, 12);
-      const quotient = randInt(20, 50);
-      const dividend = divisor * quotient;
-      return {
-        problem: `${dividend} ÷ ${divisor} = ?`,
-        answer: quotient,
-        explanation: `${dividend} ÷ ${divisor} = ${quotient}`
-      };
-    }
-  ];
-  return types[Math.floor(Math.random() * types.length)]();
-}
+function generateLocalProblem(levelKey) {
+  const cfg = LEVELS[levelKey];
+  const op = cfg.ops[Math.floor(Math.random() * cfg.ops.length)];
+  let a, b, answer, text;
 
-class MathProblemGenerator {
-  static generateWordProblem() {
-    const problemTypes = [
-      () => {
-        const speed = randInt(40, 80);
-        const time = randInt(2, 6);
-        return {
-          problem: `Kecepatan ${speed} km/jam selama ${time} jam. Berapa jaraknya?`,
-          answer: speed * time,
-          explanation: `${speed} × ${time} = ${speed * time} km`
-        };
-      },
-      () => {
-        const length = randInt(5, 20);
-        const width = randInt(3, 15);
-        return {
-          problem: `Panjang ${length} cm, lebar ${width} cm. Berapa luasnya?`,
-          answer: length * width,
-          explanation: `${length} × ${width} = ${length * width} cm²`
-        };
-      }
-    ];
-    return problemTypes[Math.floor(Math.random() * problemTypes.length)]();
+  if (op === 'kuadrat') {
+    a = randInt(...cfg.a); answer = a * a; text = `${a}²`;
+  } else if (op === 'linear') {
+    const x = randInt(1, 10); a = randInt(2, 5); b = randInt(1, 20);
+    const res = a * x + b; answer = x; text = `${a}x + ${b} = ${res}, x = ?`;
+  } else {
+    a = randInt(...cfg.a); b = randInt(...cfg.b);
+    answer = a + b; text = `${a} + ${b}`;
   }
+  return { text, answer };
 }
 
 async function generateQuestion(levelKey){
   const cfg = LEVELS[levelKey]
   const op = cfg.ops[Math.floor(Math.random()*cfg.ops.length)]
-  let a, b, answer, text, type = op
-  
-  switch(op) {
-    case '+':
-      a = randInt(...cfg.a); b = randInt(...cfg.b);
-      answer = a + b; text = `${a} + ${b}`;
-      break;
-    case '-':
-      a = randInt(...cfg.a); b = randInt(...cfg.b);
-      if(b > a) [a, b] = [b, a];
-      answer = a - b; text = `${a} - ${b}`;
-      break;
-    case '*':
-      a = randInt(...cfg.a); b = randInt(...cfg.b);
-      answer = a * b; text = `${a} × ${b}`;
-      break;
-    case '/':
-      b = randInt(...cfg.b); answer = randInt(...cfg.a); a = b * answer;
-      text = `${a} ÷ ${b}`;
-      break;
-    case 'kuadrat':
-      a = randInt(...cfg.a); answer = a * a; text = `${a}²`;
-      break;
-    case 'linear':
-      const x = randInt(1, 10); a = randInt(2, 5); b = randInt(1, 20);
-      const res = a * x + b; answer = x; text = `${a}x + ${b} = ${res}, x = ?`;
-      break;
-    case 'word':
-      const wp = MathProblemGenerator.generateWordProblem();
-      text = wp.problem; answer = wp.answer;
-      break;
-    case 'hard_division':
-      const hd = generateHardDivision();
-      text = hd.problem; answer = hd.answer;
-      break;
-    default:
-      a = 10; b = 10; answer = 20; text = "10 + 10";
+  let answer, text;
+
+  try {
+    if (['+', '-', '*', '/'].includes(op)) {
+      const a = randInt(...cfg.a);
+      const b = randInt(...cfg.b);
+      const opName = op === '+' ? 'simplify' : op === '-' ? 'simplify' : op === '*' ? 'simplify' : 'simplify';
+      const expression = op === '/' ? `${a*b}/${b}` : `${a}${op}${b}`;
+      
+      const res = await fetch(`https://newton.vercel.app/api/v2/simplify/${encodeURIComponent(expression)}`);
+      const data = await res.json();
+      text = expression.replace('*', ' × ').replace('/', ' ÷ ');
+      answer = parseInt(data.result);
+    } else {
+      const local = generateLocalProblem(levelKey);
+      text = local.text;
+      answer = local.answer;
+    }
+  } catch (e) {
+    const local = generateLocalProblem(levelKey);
+    text = local.text;
+    answer = local.answer;
   }
   
   const choices = [answer]
@@ -135,7 +84,7 @@ async function generateQuestion(levelKey){
         choices.push(cand)
     }
   }
-  return { text, answer, choices: choices.sort(() => Math.random() - 0.5), type }
+  return { text, answer, choices: choices.sort(() => Math.random() - 0.5) }
 }
 
 export default function App(){
@@ -144,7 +93,7 @@ export default function App(){
   
   const [score, setScore] = useState(0)
   const [qnum, setQnum] = useState(1)
-  const [question, setQuestion] = useState({ text: '...', answer: 0, choices: [], type: 'basic' })
+  const [question, setQuestion] = useState({ text: '...', answer: 0, choices: [] })
   const [selected, setSelected] = useState(null)
   const [timeLeft, setTimeLeft] = useState(LEVELS[level].time)
   const [running, setRunning] = useState(false)
@@ -165,7 +114,7 @@ export default function App(){
       const newQuestion = await generateQuestion(levelKey)
       setQuestion(newQuestion)
     } catch (error) {
-      setQuestion({ text: '10 + 10', answer: 20, choices: [18, 19, 20, 21], type: 'basic' })
+      setQuestion({ text: '10 + 10', answer: 20, choices: [18, 19, 20, 21] })
     } finally {
       setLoading(false)
     }
@@ -241,7 +190,6 @@ export default function App(){
   }
 
   const endMessage = useMemo(() => getEndMessage(), [score, level, gameFinished]);
-
   if (gameFinished) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-[#f8fafc] font-sans">
@@ -272,12 +220,12 @@ export default function App(){
           <div className="flex justify-between items-center mb-10">
             <div>
               <h1 className="text-2xl font-black text-slate-700 tracking-tight">Math Quiz✏️</h1>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
-                {!gameStarted ? 'Udah siap seru-seruan?' : `Soal ke ${qnum} 🔥`}
+              <p className="text-xs text-slate-400 font-bold tracking-widest mt-1">
+                {!gameStarted ? 'Udah siap seru-seruan ?' : `Soal ke ${qnum} 🔥`}
               </p>
             </div>
             <div className="bg-slate-50 px-5 py-2 rounded-2xl border border-slate-100 text-center">
-              <div className="text-[10px] text-slate-400 font-black uppercase">Points</div>
+              <div className="text-[10px] text-slate-400 font-black">Points</div>
               <div className="text-xl font-black text-slate-600">{score}</div>
             </div>
           </div>
@@ -291,7 +239,7 @@ export default function App(){
                     onClick={() => setLevel(k)} 
                     className={`py-4 rounded-2xl border-2 text-xs font-black transition-all ${level === k ? 'border-stone-400 bg-stone-50 text-stone-700 shadow-inner' : 'border-slate-50 text-slate-300 hover:border-slate-100'}`}
                   >
-                    {v.label.toUpperCase()}
+                    {v.label}
                   </button>
                 ))}
               </div>
@@ -346,20 +294,20 @@ export default function App(){
                   disabled={selected === null || loading}
                   className="flex-[2] py-5 bg-stone-700 text-white font-black rounded-2xl hover:bg-stone-800 transition-all disabled:opacity-30 shadow-xl shadow-stone-100"
                 >
-                  Yakin, jawab✅
+                  Yakin, jawab
                 </button>
                 <button 
                   onClick={nextQuestion}
                   className="flex-1 py-5 bg-slate-100 text-slate-400 font-bold rounded-2xl hover:bg-slate-200 transition-all"
                 >
-                  Skip⏭️
+                  Skip dulu
                 </button>
               </div>
             </div>
           )}
         </div>
         <div className="mt-12 text-center">
-          <p className="text-[9px] text-slate-300 font-black uppercase tracking-[0.4em]">made with❤️</p>
+          <p className="text-[9px] text-slate-300 font-black tracking-[0.4em]">made with❤️</p>
         </div>
       </div>
     </div>
