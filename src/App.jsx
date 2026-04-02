@@ -7,7 +7,6 @@ const LEVELS = {
   susah: {label: 'Susah', ops: ['+','-','*','/','word','hard_division'], a:[1,100], b:[1,50], time:50, totalQuestions: 10},
 }
 
-// Konfigurasi Notiflix
 Notify.init({
   width: '300px',
   position: 'center-top',
@@ -21,10 +20,10 @@ Notify.init({
   useIcon: true,
   fontSize: '15px',
   fontFamily: 'Inter, sans-serif',
-  success: { background: '#10b981', textColor: '#fff' },
-  failure: { background: '#f43f5e', textColor: '#fff' },
-  info: { background: '#6366f1', textColor: '#fff' },
-  warning: { background: '#f59e0b', textColor: '#fff' },
+  success: { background: '#94a3b8', textColor: '#fff' },
+  failure: { background: '#cbd5e1', textColor: '#1e293b' },
+  info: { background: '#a8a29e', textColor: '#fff' },
+  warning: { background: '#d6d3d1', textColor: '#1e293b' },
 });
 
 function randInt(min,max){ 
@@ -178,16 +177,15 @@ export default function App(){
 
   const startGame = useCallback(() => {
     if (!playerName.trim()) {
-      Notify.warning('Masukkan nama kamu dulu ya!');
+      Notify.warning('Nama kamu kosong tuh.. isi dulu yaa😶');
       return
     }
     setGameStarted(true)
     setRunning(true)
     setTimeLeft(LEVELS[level].time)
-    Notify.info(`Selamat bermain, ${playerName}! 🚀`);
+    Notify.info(`Gaspol, ${playerName}! Good luck yaaa✨`);
   }, [level, playerName])
 
-  // Fungsi untuk menangani tekanan tombol Enter
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       startGame();
@@ -216,9 +214,9 @@ export default function App(){
     const isCorrect = Number(selected) === question.answer
     if(isCorrect) {
       setScore(prev => prev + 1)
-      Notify.success('Benar! Mantap 🎉');
+      Notify.success('Cakep, bener banget🔥');
     } else {
-      Notify.failure(`Salah! Jawaban yang benar: ${question.answer}`);
+      Notify.failure('Yah.. meleset dikit, semangaaat💪');
     }
     setTimeout(() => nextQuestion(), 1200)
   }, [selected, question, gameStarted, nextQuestion, loading])
@@ -234,19 +232,32 @@ export default function App(){
     return () => clearInterval(timerId)
   }, [running, gameStarted, level, nextQuestion, loading])
 
+  const getEndMessage = () => {
+    const ratio = score / LEVELS[level].totalQuestions;
+    if (ratio === 1) return { msg: "Gilaaa, sepuh nih! Skor sempurna🔥", emoji: "🏆" };
+    if (ratio >= 0.7) return { msg: "GGWP! Kamu jago banget matematikanya😎🤙", emoji: "✨" };
+    if (ratio >= 0.5) return { msg: "Not bad lah, dikit lagi jadi suhu...", emoji: "👍" };
+    return { msg: "Tetap semangat! Masih pemanasan ini mah..🏃‍♂️💨", emoji: "❤️" };
+  }
+
+  const endMessage = useMemo(() => getEndMessage(), [score, level, gameFinished]);
+
   if (gameFinished) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 font-sans">
-        <div className="w-full max-w-md bg-white border border-slate-100 rounded-2xl shadow-sm p-8 text-center">
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Game Selesai!</h1>
-          {/* Menampilkan nama di layar akhir */}
-          <p className="text-slate-500 mb-6 font-medium">Yeayy, <span className="text-indigo-600 font-bold">{playerName}</span> skor akhir kamu:</p>
-          <div className="text-6xl font-black text-indigo-600 mb-8">{score}/{LEVELS[level].totalQuestions}</div>
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[#f8fafc] font-sans">
+        <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-100 p-8 text-center">
+          <div className="text-5xl mb-4">{endMessage.emoji}</div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">Game selesai</h1>
+          <p className="text-slate-500 mb-2 font-medium">
+            Halo <span className="text-stone-600 font-bold">{playerName}</span>, skor akhir kamu:
+          </p>
+          <div className="text-7xl font-black text-stone-700 mb-6">{score}/{LEVELS[level].totalQuestions}</div>
+          <p className="text-slate-400 italic mb-8 px-4">{endMessage.msg}</p>
           <button 
             onClick={() => { setScore(0); setQnum(1); setGameFinished(false); setGameStarted(false); }} 
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+            className="w-full py-4 bg-stone-700 text-white rounded-2xl font-bold hover:bg-stone-800 transition-all active:scale-95 shadow-lg shadow-stone-100"
           >
-            Main Lagi
+            Main lagi kuy🔄
           </button>
         </div>
       </div>
@@ -254,63 +265,65 @@ export default function App(){
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-slate-50 font-sans">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[#fcfcfc] font-sans">
       <div className="w-full max-w-2xl">
-        <div className="bg-white/90 backdrop-blur-md border border-slate-100 rounded-2xl shadow-sm p-5 sm:p-8">
+        <div className="bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl shadow-slate-50 p-6 sm:p-10">
           
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-10">
             <div>
-              <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Quiz Matematika</h1>
-              <p className="text-xs text-slate-400 font-medium tracking-widest mt-1">
-                {!gameStarted ? 'Udah siap ?' : `Soal ${qnum} / ${LEVELS[level].totalQuestions}`}
+              <h1 className="text-2xl font-black text-slate-700 tracking-tight">Math Quiz✏️</h1>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
+                {!gameStarted ? 'Udah siap seru-seruan?' : `Soal ke ${qnum} 🔥`}
               </p>
             </div>
-            <div className="bg-indigo-50 px-4 py-2 rounded-xl text-center">
-              <div className="text-[10px] text-indigo-400 font-bold">Skor</div>
-              <div className="text-xl font-black text-indigo-600">{score}</div>
+            <div className="bg-slate-50 px-5 py-2 rounded-2xl border border-slate-100 text-center">
+              <div className="text-[10px] text-slate-400 font-black uppercase">Points</div>
+              <div className="text-xl font-black text-slate-600">{score}</div>
             </div>
           </div>
 
           {!gameStarted ? (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="grid grid-cols-3 gap-3">
                 {Object.entries(LEVELS).map(([k,v]) => (
                   <button 
                     key={k} 
                     onClick={() => setLevel(k)} 
-                    className={`py-3 rounded-xl border-2 text-xs font-bold transition-all ${level === k ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm' : 'border-slate-50 text-slate-400 hover:border-slate-200'}`}
+                    className={`py-4 rounded-2xl border-2 text-xs font-black transition-all ${level === k ? 'border-stone-400 bg-stone-50 text-stone-700 shadow-inner' : 'border-slate-50 text-slate-300 hover:border-slate-100'}`}
                   >
-                    {v.label}
+                    {v.label.toUpperCase()}
                   </button>
                 ))}
               </div>
-              <input 
-                ref={nameInputRef}
-                type="text" 
-                value={playerName} 
-                onChange={(e) => setPlayerName(e.target.value)} 
-                onKeyDown={handleKeyDown}
-                placeholder="Siapa nama kamu ?" 
-                className="w-full px-4 py-4 border border-slate-100 bg-slate-50 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none text-center font-semibold text-slate-700 transition-all"
-              />
+              <div className="relative">
+                <input 
+                  ref={nameInputRef}
+                  type="text" 
+                  value={playerName} 
+                  onChange={(e) => setPlayerName(e.target.value)} 
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ketik nama kamu di sini.." 
+                  className="w-full px-6 py-5 border-2 border-slate-50 bg-slate-50/50 rounded-2xl focus:border-stone-200 focus:bg-white outline-none text-center font-bold text-slate-600 transition-all placeholder:text-slate-300"
+                />
+              </div>
               <button 
                 onClick={startGame} 
-                className="w-full py-4 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition-all shadow-xl shadow-slate-200 active:scale-[0.98]"
+                className="w-full py-5 bg-stone-800 text-white font-black rounded-2xl hover:bg-black transition-all shadow-2xl shadow-stone-200 active:scale-95"
               >
-                MULAI
+                Gasss, mulai🚀
               </button>
             </div>
           ) : (
-            <div className="space-y-8">
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div className="space-y-10">
+              <div className="w-full bg-slate-50 h-3 rounded-full overflow-hidden border border-slate-50">
                 <div 
-                  className="bg-indigo-600 h-full transition-all duration-1000 ease-linear" 
+                  className="bg-stone-400 h-full transition-all duration-1000 ease-linear" 
                   style={{ width: `${(timeLeft / LEVELS[level].time) * 100}%` }} 
                 />
               </div>
 
-              <div className="py-6 text-center">
-                <div className="text-4xl sm:text-6xl font-black text-slate-800 mb-2">
+              <div className="py-8 text-center">
+                <div className="text-5xl sm:text-7xl font-black text-slate-700 leading-tight">
                   {loading ? '...' : question.text}
                 </div>
               </div>
@@ -320,7 +333,7 @@ export default function App(){
                   <button 
                     key={i} 
                     onClick={() => setSelected(c)}
-                    className={`py-5 rounded-2xl border-2 font-bold text-lg transition-all ${selected === c ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md' : 'border-slate-50 hover:border-indigo-100 text-slate-500 bg-white'}`}
+                    className={`py-6 rounded-[1.5rem] border-2 font-black text-xl transition-all ${selected === c ? 'border-stone-500 bg-stone-50 text-stone-700 shadow-lg' : 'border-slate-50 hover:border-slate-100 text-slate-400 bg-white'}`}
                   >
                     {c.toLocaleString('id-ID')}
                   </button>
@@ -331,22 +344,22 @@ export default function App(){
                 <button 
                   onClick={submit} 
                   disabled={selected === null || loading}
-                  className="flex-[2] py-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-lg shadow-emerald-100"
+                  className="flex-[2] py-5 bg-stone-700 text-white font-black rounded-2xl hover:bg-stone-800 transition-all disabled:opacity-30 shadow-xl shadow-stone-100"
                 >
-                  KONFIRMASI
+                  Yakin, jawab✅
                 </button>
                 <button 
                   onClick={nextQuestion}
-                  className="flex-1 py-4 bg-slate-100 text-slate-500 font-bold rounded-xl hover:bg-slate-200 transition-all"
+                  className="flex-1 py-5 bg-slate-100 text-slate-400 font-bold rounded-2xl hover:bg-slate-200 transition-all"
                 >
-                  LEWATI
+                  Skip⏭️
                 </button>
               </div>
             </div>
           )}
         </div>
-        <div className="mt-10 text-center">
-          <p className="text-[10px] text-slate-300 font-bold tracking-[0.3em]">made with❤️</p>
+        <div className="mt-12 text-center">
+          <p className="text-[9px] text-slate-300 font-black uppercase tracking-[0.4em]">made with❤️</p>
         </div>
       </div>
     </div>
